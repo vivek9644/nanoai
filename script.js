@@ -1,85 +1,83 @@
+// 👇 1. यहाँ अपने Render बैकएंड का URL डालें
+const BACKEND_URL = "https://backendnano-ai.onrender.com"; // इसे अपने Render URL से बदलें
+
 const chatForm = document.getElementById('chat-form');
 const promptInput = document.getElementById('prompt-input');
 const chatWindow = document.getElementById('chat-window');
+const fileInput = document.getElementById('file-input');
+const uploadBtn = document.getElementById('upload-btn');
+const fileNameDisplay = document.getElementById('file-name-display');
 
-// सर्वर का URL
-const API_URL = 'http://localhost:3000/api/chat';
+uploadBtn.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', () => {
+    fileNameDisplay.textContent = fileInput.files.length > 0 ? `Selected: ${fileInput.files[0].name}` : '';
+});
 
 chatForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); // फॉर्म को सबमिट होने से रोकें
-
+    e.preventDefault();
     const userPrompt = promptInput.value.trim();
     if (!userPrompt) return;
 
-    // यूजर का मेसेज दिखाएँ
+    const userFile = fileInput.files[0];
     addMessage(userPrompt, 'user');
-
-    // इनपुट फील्ड को खाली करें
     promptInput.value = '';
+    fileInput.value = ''; // फाइल इनपुट को रीसेट करें
+    fileNameDisplay.textContent = '';
 
+    const loadingMessage = addMessage('सोच रहा हूँ...', 'ai', true);
+
+    const formData = new FormData();
+    formData.append('prompt', userPrompt);
+    if (userFile) {
+        formData.append('file', userFile);
+    }
+    
     try {
-        // लोडिंग मेसेज दिखाएँ
-        const loadingMessage = addMessage('सोच रहा हूँ...', 'ai');
-
-        // बैकएंड को रिक्वेस्ट भेजें
-        const response = await fetch(API_URL, {
+        const response = await fetch(`${BACKEND_URL}/api/chat`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ prompt: userPrompt }),
+            body: formData,
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            throw new Error(data.error || 'Something went wrong');
         }
 
-        const data = await response.json();
-        const aiReply = data.reply;
-
-        // लोडिंग मेसेज को AI के जवाब से बदलें
-        updateMessage(loadingMessage, aiReply);
+        updateMessage(loadingMessage, data.reply);
 
     } catch (error) {
         console.error('Error:', error);
-        addMessage('कुछ गड़बड़ हो गयी। कृपया बाद में प्रयास करें।', 'ai');
+        updateMessage(loadingMessage, `Error: ${error.message}`);
     }
 });
 
-function addMessage(text, sender) {
+function addMessage(text, sender, isLoading = false) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', `${sender}-message`);
-    
-    // अगर AI का मेसेज है और उसमें कोड है, तो उसे <pre><code> में डालें
-    if (sender === 'ai' && text.includes('```')) {
-        const parts = text.split('```');
-        messageElement.innerHTML = parts.map((part, index) => {
-            if (index % 2 === 1) { // कोड वाला हिस्सा
-                const codeContent = part.split('\n').slice(1).join('\n'); // पहली लाइन (जैसे python) हटा दें
-                return `<pre><code>${escapeHtml(codeContent)}</code></pre>`;
-            } else {
-                return escapeHtml(part);
-            }
-        }).join('');
-    } else {
-        messageElement.textContent = text;
+    if (isLoading) {
+        messageElement.classList.add('loading');
     }
-    
+    messageElement.textContent = text;
     chatWindow.appendChild(messageElement);
-    chatWindow.scrollTop = chatWindow.scrollHeight; // स्क्रॉल करके नीचे ले जाएँ
+    chatWindow.scrollTop = chatWindow.scrollHeight;
     return messageElement;
 }
 
 function updateMessage(element, newText) {
+    element.classList.remove('loading');
     element.innerHTML = ''; // पुराना "सोच रहा हूँ..." हटा दें
+
     if (newText.includes('```')) {
         const parts = newText.split('```');
         element.innerHTML = parts.map((part, index) => {
             if (index % 2 === 1) {
-                const codeContent = part.split('\n').slice(1).join('\n');
-                return `<pre><code>${escapeHtml(codeContent)}</code></pre>`;
+                const lang = part.split('\n')[0].trim();
+                const codeContent = part.substring(part.indexOf('\n') + 1);
+                return `<pre><code class="language-${lang}">${escapeHtml(codeContent)}</code></pre>`;
             } else {
-                return escapeHtml(part);
+                return escapeHtml(part).replace(/\n/g, '<br>');
             }
         }).join('');
     } else {
