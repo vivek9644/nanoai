@@ -1,7 +1,7 @@
-// 1. कॉन्फ़िगरेशन - यहाँ अपना Render बैकएंड URL डालें
+// यहाँ अपना Render बैकएंड URL डालें
 const BACKEND_URL = "https://backendnano-ai.onrender.com";
 
-// 2. DOM एलिमेंट्स
+// DOM एलिमेंट्स
 const chatForm = document.getElementById('chat-form');
 const promptInput = document.getElementById('prompt-input');
 const chatWindow = document.getElementById('chat-window');
@@ -10,7 +10,7 @@ const uploadBtn = document.getElementById('upload-btn');
 const fileNameDisplay = document.getElementById('file-name-display');
 const submitBtn = chatForm.querySelector('button[type="submit"]');
 
-// 3. इवेंट लिस्नर्स
+// इवेंट लिस्नर्स
 uploadBtn.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', () => {
@@ -29,27 +29,27 @@ chatForm.addEventListener('submit', async (e) => {
     
     if (!userPrompt) return;
     
-    // 3.1 फॉर्म को अस्थायी रूप से अक्षम करें
+    // फॉर्म को अस्थायी रूप से अक्षम करें
     setFormDisabled(true);
     
-    // 3.2 यूजर का मैसेज दिखाएं
+    // यूजर का मैसेज दिखाएं
     addMessage(`${userPrompt}${userFile ? `\n(फाइल: ${userFile.name})` : ''}`, 'user');
     
-    // 3.3 इनपुट रीसेट करें
+    // इनपुट रीसेट करें
     promptInput.value = '';
     fileInput.value = '';
     fileNameDisplay.textContent = '';
     
-    // 3.4 AI के जवाब के लिए लोडिंग संदेश दिखाएं
+    // AI के जवाब के लिए लोडिंग संदेश दिखाएं
     const aiMessageElement = addMessage('सोच रहा हूँ...', 'ai', true);
     
     try {
-        // 3.5 फॉर्म डेटा तैयार करें
+        // फॉर्म डेटा तैयार करें
         const formData = new FormData();
         formData.append('prompt', userPrompt);
         if (userFile) formData.append('file', userFile);
         
-        // 3.6 बैकएंड को रिक्वेस्ट भेजें
+        // बैकएंड को रिक्वेस्ट भेजें
         const response = await fetch(`${BACKEND_URL}/api/chat`, {
             method: 'POST',
             body: formData
@@ -59,7 +59,7 @@ chatForm.addEventListener('submit', async (e) => {
             throw new Error(`सर्वर त्रुटि: ${response.status}`);
         }
         
-        // 3.7 स्ट्रीमिंग रिस्पॉन्स को हैंडल करें
+        // स्ट्रीमिंग रिस्पॉन्स को हैंडल करें
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let aiResponse = '';
@@ -87,20 +87,20 @@ chatForm.addEventListener('submit', async (e) => {
             }
         }
         
-        // 3.8 अंतिम अपडेट
+        // अंतिम अपडेट
         updateMessage(aiMessageElement, aiResponse, false, true);
         
     } catch (error) {
-        // 3.9 त्रुटि हैंडलिंग
+        // त्रुटि हैंडलिंग
         updateMessage(aiMessageElement, `त्रुटि: ${error.message}`, false, true);
         console.error('त्रुटि:', error);
     } finally {
-        // 3.10 फॉर्म को फिर से सक्षम करें
+        // फॉर्म को फिर से सक्षम करें
         setFormDisabled(false);
     }
 });
 
-// 4. हेल्पर फंक्शन्स
+// हेल्पर फंक्शन्स
 function setFormDisabled(disabled) {
     promptInput.disabled = disabled;
     uploadBtn.disabled = disabled;
