@@ -1,6 +1,7 @@
-// 👇 1. यहाँ अपने Render बैकएंड का URL डालें
-const BACKEND_URL = "https://backendnano-ai.onrender.com"; // इसे अपने Render URL से बदलें
+// 1. कॉन्फ़िगरेशन - यहाँ अपना Render बैकएंड URL डालें
+const BACKEND_URL = "https://your-backend.onrender.com";
 
+// 2. DOM एलिमेंट्स
 const chatForm = document.getElementById('chat-form');
 const promptInput = document.getElementById('prompt-input');
 const chatWindow = document.getElementById('chat-window');
@@ -9,101 +10,130 @@ const uploadBtn = document.getElementById('upload-btn');
 const fileNameDisplay = document.getElementById('file-name-display');
 const submitBtn = chatForm.querySelector('button[type="submit"]');
 
+// 3. इवेंट लिस्नर्स
 uploadBtn.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', () => {
-    fileNameDisplay.textContent = fileInput.files.length > 0 ? `Selected: ${fileInput.files[0].name}` : '';
+    if (fileInput.files.length > 0) {
+        fileNameDisplay.textContent = `चयनित फाइल: ${fileInput.files[0].name}`;
+    } else {
+        fileNameDisplay.textContent = '';
+    }
 });
 
 chatForm.addEventListener('submit', async (e) => {
-    // उपयोगकर्ता का सुझाव: preventDefault को सबसे ऊपर रखना
-    e.preventDefault(); 
+    e.preventDefault();
     
     const userPrompt = promptInput.value.trim();
-    if (!userPrompt) return;
-
-    // प्रोसेसिंग के दौरान फॉर्म को डिसेबल करें
-    setFormDisabled(true);
-
     const userFile = fileInput.files[0];
-    addMessage(`${userPrompt}${userFile ? `\n(File: ${userFile.name})` : ''}`, 'user');
+    
+    if (!userPrompt) return;
+    
+    // 3.1 फॉर्म को अस्थायी रूप से अक्षम करें
+    setFormDisabled(true);
+    
+    // 3.2 यूजर का मैसेज दिखाएं
+    addMessage(`${userPrompt}${userFile ? `\n(फाइल: ${userFile.name})` : ''}`, 'user');
+    
+    // 3.3 इनपुट रीसेट करें
     promptInput.value = '';
     fileInput.value = '';
     fileNameDisplay.textContent = '';
-
-    const loadingMessage = addMessage('सोच रहा हूँ...', 'ai', true);
-
-    const formData = new FormData();
-    formData.append('prompt', userPrompt);
-    if (userFile) {
-        formData.append('file', userFile);
-    }
+    
+    // 3.4 AI के जवाब के लिए लोडिंग संदेश दिखाएं
+    const aiMessageElement = addMessage('सोच रहा हूँ...', 'ai', true);
     
     try {
+        // 3.5 फॉर्म डेटा तैयार करें
+        const formData = new FormData();
+        formData.append('prompt', userPrompt);
+        if (userFile) formData.append('file', userFile);
+        
+        // 3.6 बैकएंड को रिक्वेस्ट भेजें
         const response = await fetch(`${BACKEND_URL}/api/chat`, {
             method: 'POST',
-            body: formData,
+            body: formData
         });
-
-        const data = await response.json();
-
+        
         if (!response.ok) {
-            // बेहतर एरर मैसेज को सीधे दिखाएं
-            throw new Error(data.error || 'An unknown network error occurred');
+            throw new Error(`सर्वर त्रुटि: ${response.status}`);
         }
-
-        updateMessage(loadingMessage, data.reply);
-
+        
+        // 3.7 स्ट्रीमिंग रिस्पॉन्स को हैंडल करें
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let aiResponse = '';
+        
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('data: ');
+            
+            for (const line of lines) {
+                if (line.trim() === '') continue;
+                if (line.includes('[DONE]')) break;
+                
+                try {
+                    const data = JSON.parse(line);
+                    if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
+                        aiResponse += data.choices[0].delta.content;
+                        updateMessage(aiMessageElement, aiResponse);
+                    }
+                } catch (e) {
+                    console.warn('JSON पार्सिंग त्रुटि:', e);
+                }
+            }
+        }
+        
+        // 3.8 अंतिम अपडेट
+        updateMessage(aiMessageElement, aiResponse, false, true);
+        
     } catch (error) {
-        console.error('Frontend Error:', error);
-        updateMessage(loadingMessage, `😔 क्षमा करें, एक त्रुटि हुई: ${error.message}`);
+        // 3.9 त्रुटि हैंडलिंग
+        updateMessage(aiMessageElement, `त्रुटि: ${error.message}`, false, true);
+        console.error('त्रुटि:', error);
     } finally {
-        // प्रोसेसिंग पूरी होने पर फॉर्म को फिर से इनेबल करें
+        // 3.10 फॉर्म को फिर से सक्षम करें
         setFormDisabled(false);
     }
 });
 
+// 4. हेल्पर फंक्शन्स
 function setFormDisabled(disabled) {
     promptInput.disabled = disabled;
     uploadBtn.disabled = disabled;
     submitBtn.disabled = disabled;
-    submitBtn.textContent = disabled ? "Wait..." : "भेजें";
+    submitBtn.textContent = disabled ? 'प्रोसेसिंग...' : 'भेजें';
 }
 
-function addMessage(text, sender, isLoading = false) {
+function addMessage(text, sender, isThinking = false) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', `${sender}-message`);
-    if (isLoading) {
-        messageElement.classList.add('loading');
+    
+    if (isThinking) {
+        messageElement.classList.add('thinking');
+        messageElement.innerHTML = text + '<span class="cursor"></span>';
+    } else {
+        messageElement.textContent = text;
     }
-    messageElement.textContent = text;
+    
     chatWindow.appendChild(messageElement);
     chatWindow.scrollTop = chatWindow.scrollHeight;
     return messageElement;
 }
 
-function updateMessage(element, newText) {
-    element.classList.remove('loading');
-    element.innerHTML = ''; // पुराना टेक्स्ट हटा दें
-
-    if (newText.includes('```')) {
-        const parts = newText.split(/```/g);
-        element.innerHTML = parts.map((part, index) => {
-            if (index % 2 === 1) {
-                const codeContent = part.substring(part.indexOf('\n') + 1);
-                return `<pre><code>${escapeHtml(codeContent)}</code></pre>`;
-            } else {
-                return escapeHtml(part).replace(/\n/g, '<br>');
-            }
-        }).join('');
-    } else {
-        element.textContent = newText;
+function updateMessage(element, newText, isThinking = false, isFinal = false) {
+    if (isFinal) {
+        element.classList.remove('thinking');
+    } else if (isThinking) {
+        element.classList.add('thinking');
     }
+    
+    element.innerHTML = isThinking 
+        ? newText + '<span class="cursor"></span>'
+        : newText;
+    
     chatWindow.scrollTop = chatWindow.scrollHeight;
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
