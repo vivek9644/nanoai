@@ -1,5 +1,5 @@
 // 1. कॉन्फ़िगरेशन - यहाँ अपना Render बैकएंड URL डालें
-const BACKEND_URL = "https://your-backend.onrender.com";
+const BACKEND_URL = "https://backendnano-ai.onrender.com";
 
 // 2. DOM एलिमेंट्स
 const chatForm = document.getElementById('chat-form');
