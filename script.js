@@ -7,6 +7,7 @@ const chatWindow = document.getElementById('chat-window');
 const fileInput = document.getElementById('file-input');
 const uploadBtn = document.getElementById('upload-btn');
 const fileNameDisplay = document.getElementById('file-name-display');
+const submitBtn = chatForm.querySelector('button[type="submit"]');
 
 uploadBtn.addEventListener('click', () => fileInput.click());
 
@@ -15,14 +16,19 @@ fileInput.addEventListener('change', () => {
 });
 
 chatForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    // उपयोगकर्ता का सुझाव: preventDefault को सबसे ऊपर रखना
+    e.preventDefault(); 
+    
     const userPrompt = promptInput.value.trim();
     if (!userPrompt) return;
 
+    // प्रोसेसिंग के दौरान फॉर्म को डिसेबल करें
+    setFormDisabled(true);
+
     const userFile = fileInput.files[0];
-    addMessage(userPrompt, 'user');
+    addMessage(`${userPrompt}${userFile ? `\n(File: ${userFile.name})` : ''}`, 'user');
     promptInput.value = '';
-    fileInput.value = ''; // फाइल इनपुट को रीसेट करें
+    fileInput.value = '';
     fileNameDisplay.textContent = '';
 
     const loadingMessage = addMessage('सोच रहा हूँ...', 'ai', true);
@@ -42,16 +48,27 @@ chatForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || 'Something went wrong');
+            // बेहतर एरर मैसेज को सीधे दिखाएं
+            throw new Error(data.error || 'An unknown network error occurred');
         }
 
         updateMessage(loadingMessage, data.reply);
 
     } catch (error) {
-        console.error('Error:', error);
-        updateMessage(loadingMessage, `Error: ${error.message}`);
+        console.error('Frontend Error:', error);
+        updateMessage(loadingMessage, `😔 क्षमा करें, एक त्रुटि हुई: ${error.message}`);
+    } finally {
+        // प्रोसेसिंग पूरी होने पर फॉर्म को फिर से इनेबल करें
+        setFormDisabled(false);
     }
 });
+
+function setFormDisabled(disabled) {
+    promptInput.disabled = disabled;
+    uploadBtn.disabled = disabled;
+    submitBtn.disabled = disabled;
+    submitBtn.textContent = disabled ? "Wait..." : "भेजें";
+}
 
 function addMessage(text, sender, isLoading = false) {
     const messageElement = document.createElement('div');
@@ -67,15 +84,14 @@ function addMessage(text, sender, isLoading = false) {
 
 function updateMessage(element, newText) {
     element.classList.remove('loading');
-    element.innerHTML = ''; // पुराना "सोच रहा हूँ..." हटा दें
+    element.innerHTML = ''; // पुराना टेक्स्ट हटा दें
 
     if (newText.includes('```')) {
-        const parts = newText.split('```');
+        const parts = newText.split(/```/g);
         element.innerHTML = parts.map((part, index) => {
             if (index % 2 === 1) {
-                const lang = part.split('\n')[0].trim();
                 const codeContent = part.substring(part.indexOf('\n') + 1);
-                return `<pre><code class="language-${lang}">${escapeHtml(codeContent)}</code></pre>`;
+                return `<pre><code>${escapeHtml(codeContent)}</code></pre>`;
             } else {
                 return escapeHtml(part).replace(/\n/g, '<br>');
             }
