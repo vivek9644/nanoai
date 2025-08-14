@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Agent (Deployed)</title>
+    <title>AI एजेंट</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>AI Agent</h1>
+        <h1>AI सहायक</h1>
         <div id="chat-window" class="chat-window">
-            <div class="message ai-message">नमस्ते! आप मुझसे कोई भी सवाल पूछ सकते हैं या फाइल अपलोड करके उसके बारे में पूछ सकते हैं।</div>
+            <div class="message ai-message">नमस्ते! मैं आपकी कैसे सहायता कर सकता हूँ?</div>
         </div>
         <div id="file-name-display" class="file-name-display"></div>
         <form id="chat-form" class="chat-form">
-            <input type="file" id="file-input" style="display: none;">
-            <button type="button" id="upload-btn" title="Attach File">📎</button>
-            <input type="text" id="prompt-input" placeholder="अपना सवाल यहाँ लिखें..." autocomplete="off" required>
+            <input type="file" id="file-input" hidden>
+            <button type="button" id="upload-btn" title="फाइल संलग्न करें">📎</button>
+            <input type="text" id="prompt-input" placeholder="अपना सवाल यहाँ टाइप करें..." required>
             <button type="submit">भेजें</button>
         </form>
     </div>
