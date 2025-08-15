@@ -3,30 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI सहायक</title>
+    <title>NanoAI - मल्टी-मॉडल AI सहायक</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>AI Assistant</h1>
-        <div id="chat-window" class="chat-window">
-            <div class="message ai-message">नमस्ते! मैं आपकी कैसे सहायता कर सकता हूँ? एक मॉडल चुनें और अपना प्रश्न पूछें।</div>
+        <div class="header">
+            <h1>NanoAI</h1>
+            <p>मल्टी-मॉडल AI सहायक | फाइल सपोर्ट: PDF, DOCX, ZIP, TXT</p>
         </div>
+        
+        <div id="chat-window" class="chat-window">
+            <div class="message ai-message">
+                <div class="model-tag">DeepSeek R1</div>
+                नमस्ते! मैं NanoAI हूँ। आप किसी भी फाइल (PDF, DOCX, ZIP, TXT) को अपलोड कर सकते हैं और अपना प्रश्न पूछ सकते हैं।
+            </div>
+        </div>
+        
         <div id="file-name-display" class="file-name-display"></div>
-        <form id="chat-form" class="chat-form">
+        
+        <div class="controls">
             <div class="model-selector-container">
                 <select id="model-selector">
-                    <option value="openrouter/deepseek/deepseek-chat">DeepSeek Chat (Fast)</option>
-                    <option value="google/gemini-1.5-flash">Gemini 1.5 Flash</option>
-                    <option value="openrouter/deepseek/deepseek-coder">DeepSeek Coder</option>
-                    <!-- आप और मॉडल यहाँ जोड़ सकते हैं -->
+                    <option value="openrouter/deepseek/deepseek-chat">DeepSeek Chat (फ्री)</option>
+                    <option value="openrouter/deepseek/deepseek-coder">DeepSeek Coder (कोडिंग)</option>
+                    <option value="google/gemini-1.5-flash">Gemini 1.5 Flash (गूगल)</option>
+                    <option value="openai/gpt-4o">GPT-4o (ओपनएआई)</option>
+                    <option value="openai/dalle-3">DALL-E 3 (इमेज जनरेशन)</option>
                 </select>
             </div>
-            <button type="button" id="upload-btn" title="फाइल संलग्न करें">📎</button>
+            
+            <div class="stream-toggle">
+                <label>
+                    <input type="checkbox" id="stream-toggle">
+                    स्ट्रीमिंग रिस्पॉन्स
+                </label>
+            </div>
+        </div>
+        
+        <form id="chat-form" class="chat-form">
+            <input type="file" id="file-input" hidden>
+            <button type="button" id="upload-btn" title="फाइल संलग्न करें">
+                <span class="upload-icon">📎</span>
+                <span class="upload-text">फाइल चुनें</span>
+            </button>
+            
             <input type="text" id="prompt-input" placeholder="अपना सवाल यहाँ टाइप करें..." required>
-            <button type="submit" id="send-btn">भेजें</button>
+            
+            <button type="submit" id="send-btn">
+                <span class="send-icon">✉️</span>
+                <span class="send-text">भेजें</span>
+            </button>
         </form>
+        
+        <div class="footer">
+            <p>NanoAI v1.2 | समर्थित फाइलें: PDF, DOCX, ZIP, TXT, JSON, XML, JS</p>
+        </div>
     </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
