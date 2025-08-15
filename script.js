@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileNameDisplay = document.getElementById('file-name-display');
     const sendBtn = document.getElementById('send-btn');
 
-    const API_URL = 'https://your-render-backend-url.onrender.com/api/chat'; // <<--- अपनी रेंडर URL यहाँ डालें
+    const API_URL = 'https://backendnano-ai.onrender.com'; // <<--- अपनी रेंडर URL यहाँ डालें
 
     // Handle file upload button click
     uploadBtn.addEventListener('click', () => {
