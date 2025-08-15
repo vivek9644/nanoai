@@ -81,6 +81,7 @@ h1 {
     padding: 15px;
     background: rgba(35, 35, 45, 0.9);
     gap: 10px;
+    align-items: center;
 }
 
 #prompt-input {
@@ -167,4 +168,26 @@ h1 {
 .chat-window::-webkit-scrollbar-thumb {
     background: linear-gradient(135deg, #00cc66, #0066cc);
     border-radius: 4px;
+}
+
+.model-selector-container {
+    position: relative;
+}
+
+#model-selector {
+    background: rgba(80, 80, 100, 0.9);
+    color: #f0f0f0;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+#model-selector:hover {
+    background: rgba(100, 100, 120, 0.9);
 }
