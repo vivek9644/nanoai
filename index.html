@@ -8,16 +8,23 @@
 </head>
 <body>
     <div class="container">
-        <h1>AI सहायक</h1>
+        <h1>AI Assistant</h1>
         <div id="chat-window" class="chat-window">
-            <div class="message ai-message">नमस्ते! मैं आपकी कैसे सहायता कर सकता हूँ?</div>
+            <div class="message ai-message">नमस्ते! मैं आपकी कैसे सहायता कर सकता हूँ? एक मॉडल चुनें और अपना प्रश्न पूछें।</div>
         </div>
         <div id="file-name-display" class="file-name-display"></div>
         <form id="chat-form" class="chat-form">
-            <input type="file" id="file-input" hidden>
+            <div class="model-selector-container">
+                <select id="model-selector">
+                    <option value="openrouter/deepseek/deepseek-chat">DeepSeek Chat (Fast)</option>
+                    <option value="google/gemini-1.5-flash">Gemini 1.5 Flash</option>
+                    <option value="openrouter/deepseek/deepseek-coder">DeepSeek Coder</option>
+                    <!-- आप और मॉडल यहाँ जोड़ सकते हैं -->
+                </select>
+            </div>
             <button type="button" id="upload-btn" title="फाइल संलग्न करें">📎</button>
             <input type="text" id="prompt-input" placeholder="अपना सवाल यहाँ टाइप करें..." required>
-            <button type="submit">भेजें</button>
+            <button type="submit" id="send-btn">भेजें</button>
         </form>
     </div>
     <script src="script.js"></script>
